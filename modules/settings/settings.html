@@ -29,6 +29,44 @@
                 <p class="help-text">This will clear all application data stored in your browser</p>
             </div>
         </section>
+        
+        <!-- New Discovery Settings Section -->
+        <section class="settings-group discovery-settings">
+            <h2>Module & Service Discovery</h2>
+            <div class="setting-item">
+                <h3>Discovered Modules: <span id="modules-count">0</span></h3>
+                <button id="refresh-modules" class="btn btn-primary">Refresh Modules</button>
+                <div id="modules-list" class="discovery-list"></div>
+                <p class="help-text">Scan for new modules in the application</p>
+            </div>
+            
+            <div class="setting-item">
+                <h3>Discovered Services: <span id="services-count">0</span></h3>
+                <button id="refresh-services" class="btn btn-primary">Refresh Services</button>
+                <div id="services-list" class="discovery-list"></div>
+                <p class="help-text">Scan for new services in the application</p>
+            </div>
+            
+            <div class="setting-item">
+                <label class="switch">
+                    <input type="checkbox" id="quiet-mode-toggle">
+                    <span class="slider"></span>
+                    <span class="label">Quiet Discovery Mode</span>
+                </label>
+                <p class="help-text">Hide 404 errors in console when discovering modules/services</p>
+            </div>
+            
+            <div class="setting-item">
+                <button id="reload-app" class="btn btn-secondary">Reload Application</button>
+                <p class="help-text">Reload the app to apply newly discovered modules and services</p>
+            </div>
+
+            <!-- New Cleanup Button -->
+            <div class="setting-item">
+                <button id="cleanup-discoveries" class="btn btn-warning">Remove Invalid Items</button>
+                <p class="help-text">Remove modules and services that no longer exist</p>
+            </div>
+        </section>
     </div>
 </div>
 
@@ -53,6 +91,12 @@
 .settings-group h2 {
     margin-bottom: 1.5rem;
     font-size: 1.5rem;
+}
+
+.settings-group h3 {
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+    font-weight: 500;
 }
 
 .setting-item {
@@ -129,6 +173,16 @@ input:checked + .slider:before {
     border: none;
     cursor: pointer;
     font-weight: 500;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
 .btn-primary {
@@ -138,6 +192,16 @@ input:checked + .slider:before {
 
 .btn-danger {
     background-color: #e11d48;
+    color: white;
+}
+
+.btn-secondary {
+    background-color: #4f46e5;
+    color: white;
+}
+
+.btn-warning {
+    background-color: #f59e0b;
     color: white;
 }
 
@@ -153,10 +217,53 @@ input:checked + .slider:before {
     right: 20px;
     padding: 1rem;
     border-radius: var(--radius-md);
-    background-color: #10b981;
     color: white;
     box-shadow: var(--shadow-md);
     animation: fade-in 0.3s ease-out;
+    z-index: 1000;
+}
+
+.message.success {
+    background-color: #10b981;
+}
+
+.message.error {
+    background-color: #ef4444;
+}
+
+.error-message {
+    color: #ef4444;
+    font-weight: 500;
+}
+
+.discovery-list {
+    margin-top: 0.5rem;
+    font-family: monospace;
+    font-size: 0.85rem;
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 0.5rem;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.discovery-list .item {
+    display: inline-block;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 2px 6px;
+    margin: 2px;
+}
+
+.discovery-list .item.valid {
+    border-left: 3px solid #10b981;
+}
+
+.discovery-list .item.invalid {
+    border-left: 3px solid #ef4444;
+    text-decoration: line-through;
 }
 
 @keyframes fade-in {

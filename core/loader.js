@@ -51,6 +51,11 @@ export class ModuleLoader {
                         
                         this.modules[moduleName] = moduleInstance;
                         console.log(`Module '${moduleName}' loaded successfully`);
+                        
+                        // If our discovery service is available, register this module
+                        if (window.serviceRegistry && window.serviceRegistry.discovery) {
+                            window.serviceRegistry.discovery.instance.addDiscoveredModule(moduleName);
+                        }
                     }
                 } catch (moduleError) {
                     console.error(`Failed to load module '${moduleName}':`, moduleError);
@@ -71,19 +76,11 @@ export class ModuleLoader {
         const moduleConfigs = {};
         
         try {
-            // Try directory listing approach
-            const response = await fetch('./modules/');
-            const directoryText = await response.text();
+            // Get list of module names to check
+            const moduleNames = await this.getModuleNames();
             
-            // Extract directory names from HTML listing
-            const dirRegex = /<a[^>]*href="([^"\/]+)\/"[^>]*>/g;
-            let match;
-            
-            // For each potential module directory
-            while ((match = dirRegex.exec(directoryText)) !== null) {
-                const moduleName = match[1];
-                if (moduleName.startsWith('.')) continue; // Skip hidden directories
-                
+            // Try to load configs for each module
+            for (const moduleName of moduleNames) {
                 try {
                     // Try to load the module.json file
                     const configResponse = await fetch(`./modules/${moduleName}/module.json`);
@@ -94,82 +91,163 @@ export class ModuleLoader {
                             name: moduleName,
                             ...config
                         };
+                        console.log(`Discovered module with config: ${moduleName}`);
+                    } else {
+                        // Check if the module files exist to create a default config
+                        try {
+                            const jsExists = await fetch(`./modules/${moduleName}/${moduleName}.js`, {
+                                method: 'HEAD'
+                            });
+                            
+                            const htmlExists = await fetch(`./modules/${moduleName}/${moduleName}.html`, {
+                                method: 'HEAD'
+                            });
+                            
+                            if (jsExists.ok && htmlExists.ok) {
+                                moduleConfigs[moduleName] = {
+                                    name: moduleName,
+                                    title: this.capitalizeFirstLetter(moduleName),
+                                    version: "1.0.0",
+                                    navItem: true,
+                                    description: `${this.capitalizeFirstLetter(moduleName)} module`
+                                };
+                                console.log(`Discovered module without config: ${moduleName}`);
+                            }
+                        } catch (jsErr) {
+                            // Skip this module
+                        }
                     }
                 } catch (err) {
-                    console.warn(`No module.json found for ${moduleName}, trying to load anyway`);
-                    
-                    // Try to see if the module JS file exists
-                    try {
-                        const jsExists = await fetch(`./modules/${moduleName}/${moduleName}.js`, {
-                            method: 'HEAD'
-                        });
-                        
-                        if (jsExists.ok) {
-                            moduleConfigs[moduleName] = {
-                                name: moduleName,
-                                title: this.capitalizeFirstLetter(moduleName),
-                                version: "1.0.0",
-                                description: `${this.capitalizeFirstLetter(moduleName)} module`
-                            };
-                        }
-                    } catch (jsErr) {
-                        // Skip this module
-                    }
+                    // Skip this module
                 }
             }
             
-            // Fallback to known modules if directory listing fails
+            // If no modules found, use defaults
             if (Object.keys(moduleConfigs).length === 0) {
-                const knownModules = ['home', 'settings'];
-                
-                for (const moduleName of knownModules) {
-                    try {
-                        const configResponse = await fetch(`./modules/${moduleName}/module.json`);
-                        
-                        if (configResponse.ok) {
-                            const config = await configResponse.json();
-                            moduleConfigs[moduleName] = {
-                                name: moduleName,
-                                ...config
-                            };
-                        } else {
-                            // Add default config
-                            moduleConfigs[moduleName] = {
-                                name: moduleName,
-                                title: this.capitalizeFirstLetter(moduleName),
-                                version: "1.0.0",
-                                navItem: true,
-                                description: `${this.capitalizeFirstLetter(moduleName)} module`
-                            };
-                        }
-                    } catch (err) {
-                        // Add default config
-                        moduleConfigs[moduleName] = {
-                            name: moduleName,
-                            title: this.capitalizeFirstLetter(moduleName),
-                            version: "1.0.0",
-                            navItem: true,
-                            description: `${this.capitalizeFirstLetter(moduleName)} module`
-                        };
-                    }
-                }
+                console.warn('No modules discovered, using defaults');
+                return this.getDefaultModuleConfigs();
             }
             
             return moduleConfigs;
         } catch (error) {
             console.error('Error discovering module configs:', error);
-            
-            // Return minimal defaults
-            return {
-                home: {
-                    name: "home",
-                    title: "Home",
-                    version: "1.0.0",
-                    navItem: true,
-                    description: "Home module"
-                }
-            };
+            return this.getDefaultModuleConfigs();
         }
+    }
+    
+    async getModuleNames() {
+        // Start with essential modules
+        const moduleNames = ['home', 'settings'];
+        const discoveredModules = new Set(moduleNames);
+        
+        try {
+            // Try loading from localStorage first if available
+            if (window.localStorage) {
+                try {
+                    const savedModules = localStorage.getItem('app_discoveredModules');
+                    if (savedModules) {
+                        const parsedModules = JSON.parse(savedModules);
+                        parsedModules.forEach(module => discoveredModules.add(module));
+                        // If we have stored modules, skip further checks to avoid HTTP errors
+                        if (parsedModules.length > 0) {
+                            return Array.from(discoveredModules);
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Failed to load discovered modules from localStorage');
+                }
+            }
+            
+            // If discovery service is available, use it
+            if (window.serviceRegistry && window.serviceRegistry.discovery) {
+                const discoveryService = window.serviceRegistry.discovery.instance;
+                const discoveredModulesList = discoveryService.getDiscoveredModules();
+                discoveredModulesList.forEach(module => discoveredModules.add(module));
+                
+                // If we have modules from the discovery service, use those
+                if (discoveredModulesList.length > 0) {
+                    return Array.from(discoveredModules);
+                }
+            }
+            
+            // Only try to scan for modules if we need to
+            // Smart check for modules by looking at HTML/JS code instead of HTTP probing
+            try {
+                // Check for module links in index.html
+                const indexResponse = await fetch('./index.html');
+                if (indexResponse.ok) {
+                    const htmlContent = await indexResponse.text();
+                    const linkRegex = /href=["']#\/([a-zA-Z0-9_-]+)/g;
+                    let match;
+                    while ((match = linkRegex.exec(htmlContent)) !== null) {
+                        const moduleName = match[1];
+                        if (moduleName && !moduleName.includes('/')) {
+                            discoveredModules.add(moduleName);
+                        }
+                    }
+                }
+            } catch (e) {
+                console.warn('Failed to check index.html for modules');
+            }
+            
+            // Only try these checks as a last resort and only for a few modules
+            if (discoveredModules.size <= 2) {
+                // Try checking for a few additional common modules
+                const additionalModules = [
+                    'about', 'profile', 'dashboard'
+                ];
+                
+                // Create a controller to abort all requests after a timeout
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 1000);
+                
+                try {
+                    await Promise.all(additionalModules.map(async (moduleName) => {
+                        if (!discoveredModules.has(moduleName)) {
+                            try {
+                                // Check if module exists with a single HEAD request
+                                const response = await fetch(`./modules/${moduleName}/`, {
+                                    method: 'HEAD',
+                                    signal: controller.signal,
+                                    cache: 'force-cache'
+                                });
+                                
+                                if (response.ok) {
+                                    discoveredModules.add(moduleName);
+                                }
+                            } catch (e) {
+                                // Module doesn't exist or can't be accessed - silently ignore
+                            }
+                        }
+                    }));
+                } finally {
+                    clearTimeout(timeoutId);
+                }
+            }
+        } catch (e) {
+            console.warn('Error during module discovery:', e);
+        }
+        
+        return Array.from(discoveredModules);
+    }
+    
+    getDefaultModuleConfigs() {
+        return {
+            home: {
+                name: "home",
+                title: "Home",
+                version: "1.0.0",
+                navItem: true,
+                description: "Home module"
+            },
+            settings: {
+                name: "settings",
+                title: "Settings",
+                version: "1.0.0",
+                navItem: true,
+                description: "Settings module"
+            }
+        };
     }
     
     updateNavigation() {

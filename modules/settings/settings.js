@@ -49,6 +49,278 @@ export default class SettingsModule {
                 }
             });
         }
+        
+        // Add debugging functionality
+        const debugModulePathsBtn = container.querySelector('#debug-module-paths');
+        const debugOutput = container.querySelector('#debug-output');
+        
+        if (debugModulePathsBtn && debugOutput) {
+            debugModulePathsBtn.addEventListener('click', async () => {
+                debugOutput.innerHTML = 'Checking module paths...\n';
+                const modules = ['home', 'settings', 'chatbot'];
+                
+                for (const module of modules) {
+                    const jsPath = `./modules/${module}/${module}.js`;
+                    const htmlPath = `./modules/${module}/${module}.html`;
+                    const configPath = `./modules/${module}/module.json`;
+                    
+                    debugOutput.innerHTML += `\nChecking ${module} module:\n`;
+                    
+                    try {
+                        const jsResponse = await fetch(jsPath, { method: 'HEAD' });
+                        const status = jsResponse.ok ? 'OK' : 'NOT FOUND';
+                        const className = jsResponse.ok ? 'path-ok' : 'path-error';
+                        debugOutput.innerHTML += `<span class="${className}">JS file: ${status} (${jsPath})</span>\n`;
+                    } catch (e) {
+                        debugOutput.innerHTML += `<span class="path-error">JS file: ERROR (${jsPath})</span>\n`;
+                    }
+                    
+                    try {
+                        const htmlResponse = await fetch(htmlPath, { method: 'HEAD' });
+                        const status = htmlResponse.ok ? 'OK' : 'NOT FOUND';
+                        const className = htmlResponse.ok ? 'path-ok' : 'path-error';
+                        debugOutput.innerHTML += `<span class="${className}">HTML file: ${status} (${htmlPath})</span>\n`;
+                    } catch (e) {
+                        debugOutput.innerHTML += `<span class="path-error">HTML file: ERROR (${htmlPath})</span>\n`;
+                    }
+                    
+                    try {
+                        const configResponse = await fetch(configPath, { method: 'HEAD' });
+                        const status = configResponse.ok ? 'OK' : 'NOT FOUND';
+                        const className = configResponse.ok ? 'path-ok' : 'path-error';
+                        debugOutput.innerHTML += `<span class="${className}">Config file: ${status} (${configPath})</span>\n`;
+                    } catch (e) {
+                        debugOutput.innerHTML += `<span class="path-error">Config file: ERROR (${configPath})</span>\n`;
+                    }
+                }
+            });
+        }
+        
+        // Set up module and service discovery UI
+        this.setupDiscoveryUI(container);
+    }
+    
+    setupDiscoveryUI(container) {
+        // Get references to the refresh buttons
+        const refreshModulesBtn = container.querySelector('#refresh-modules');
+        const refreshServicesBtn = container.querySelector('#refresh-services');
+        const quietModeToggle = container.querySelector('#quiet-mode-toggle');
+        
+        // Get reference to the discovery service if available
+        const discoveryService = window.serviceRegistry?.discovery?.instance;
+        
+        // If discovery service is available, setup the UI
+        if (discoveryService) {
+            // Display current discovery counts
+            const modulesCount = container.querySelector('#modules-count');
+            const servicesCount = container.querySelector('#services-count');
+            const modulesList = container.querySelector('#modules-list');
+            const servicesList = container.querySelector('#services-list');
+            
+            if (modulesCount) {
+                const discoveredModules = discoveryService.getDiscoveredModules();
+                modulesCount.textContent = discoveredModules.length;
+                
+                // Display modules list
+                if (modulesList) {
+                    this.renderDiscoveredItems(modulesList, discoveredModules, 'modules');
+                }
+            }
+            
+            if (servicesCount) {
+                const discoveredServices = discoveryService.getDiscoveredServices();
+                servicesCount.textContent = discoveredServices.length;
+                
+                // Display services list
+                if (servicesList) {
+                    this.renderDiscoveredItems(servicesList, discoveredServices, 'services');
+                }
+            }
+            
+            // Setup quiet mode toggle
+            if (quietModeToggle) {
+                // Set initial state
+                quietModeToggle.checked = discoveryService.getQuietMode();
+                
+                // Add event listener
+                quietModeToggle.addEventListener('change', () => {
+                    const quietMode = quietModeToggle.checked;
+                    discoveryService.setQuietMode(quietMode);
+                    
+                    // Apply or remove console filter
+                    if (quietMode) {
+                        discoveryService.installConsoleFilter();
+                        this.showMessage('Quiet mode enabled - 404 errors will be hidden');
+                    } else {
+                        discoveryService.removeConsoleFilter();
+                        this.showMessage('Quiet mode disabled - all console messages will be shown');
+                    }
+                });
+            }
+            
+            // Setup refresh modules button
+            if (refreshModulesBtn) {
+                refreshModulesBtn.addEventListener('click', async () => {
+                    refreshModulesBtn.disabled = true;
+                    refreshModulesBtn.textContent = 'Scanning...';
+                    
+                    try {
+                        console.log('Starting module discovery...');
+                        const result = await discoveryService.discoverNewModules();
+                        console.log('Discovery result:', result);
+                        
+                        if (modulesCount) {
+                            modulesCount.textContent = result.total;
+                        }
+                        
+                        // Update modules list display
+                        if (modulesList) {
+                            const discoveredModules = discoveryService.getDiscoveredModules();
+                            console.log('All discovered modules:', discoveredModules);
+                            this.renderDiscoveredItems(modulesList, discoveredModules, 'modules');
+                        }
+                        
+                        this.showMessage(`Module discovery complete. Found ${result.new} new module(s).`);
+                    } catch (e) {
+                        console.error('Error refreshing modules:', e);
+                        this.showMessage('Error refreshing modules', 'error');
+                    } finally {
+                        refreshModulesBtn.disabled = false;
+                        refreshModulesBtn.textContent = 'Refresh Modules';
+                    }
+                });
+            }
+            
+            // Setup refresh services button
+            if (refreshServicesBtn) {
+                refreshServicesBtn.addEventListener('click', async () => {
+                    refreshServicesBtn.disabled = true;
+                    refreshServicesBtn.textContent = 'Scanning...';
+                    
+                    try {
+                        const result = await discoveryService.discoverNewServices();
+                        
+                        if (servicesCount) {
+                            servicesCount.textContent = result.total;
+                        }
+                        
+                        // Update services list display
+                        if (servicesList) {
+                            const discoveredServices = discoveryService.getDiscoveredServices();
+                            this.renderDiscoveredItems(servicesList, discoveredServices, 'services');
+                        }
+                        
+                        this.showMessage(`Service discovery complete. Found ${result.new} new service(s).`);
+                    } catch (e) {
+                        console.error('Error refreshing services:', e);
+                        this.showMessage('Error refreshing services', 'error');
+                    } finally {
+                        refreshServicesBtn.disabled = false;
+                        refreshServicesBtn.textContent = 'Refresh Services';
+                    }
+                });
+            }
+            
+            // Add reload app button functionality
+            const reloadAppBtn = container.querySelector('#reload-app');
+            if (reloadAppBtn) {
+                reloadAppBtn.addEventListener('click', () => {
+                    if (confirm('Reload the application to apply discovered modules and services?')) {
+                        window.location.reload();
+                    }
+                });
+            }
+            
+            // Add code for the cleanup button inside the if (discoveryService) block
+            const cleanupBtn = container.querySelector('#cleanup-discoveries');
+            if (cleanupBtn) {
+                cleanupBtn.addEventListener('click', async () => {
+                    cleanupBtn.disabled = true;
+                    cleanupBtn.textContent = 'Cleaning...';
+                    
+                    try {
+                        const result = await discoveryService.cleanupInvalidDiscoveries();
+                        
+                        // Update counts and lists
+                        if (modulesCount) {
+                            modulesCount.textContent = result.modules;
+                        }
+                        
+                        if (servicesCount) {
+                            servicesCount.textContent = result.services;
+                        }
+                        
+                        // Update the lists
+                        if (modulesList) {
+                            const discoveredModules = discoveryService.getDiscoveredModules();
+                            this.renderDiscoveredItems(modulesList, discoveredModules, 'modules');
+                        }
+                        
+                        if (servicesList) {
+                            const discoveredServices = discoveryService.getDiscoveredServices();
+                            this.renderDiscoveredItems(servicesList, discoveredServices, 'services');
+                        }
+                        
+                        this.showMessage('Invalid discoveries removed successfully');
+                    } catch (e) {
+                        console.error('Error cleaning up discoveries:', e);
+                        this.showMessage('Error cleaning up discoveries', 'error');
+                    } finally {
+                        cleanupBtn.disabled = false;
+                        cleanupBtn.textContent = 'Remove Invalid Items';
+                    }
+                });
+            }
+        } else {
+            // Discovery service not available - hide the discovery section or show error
+            const discoverySection = container.querySelector('.discovery-settings');
+            if (discoverySection) {
+                discoverySection.innerHTML = `
+                    <div class="setting-item">
+                        <p class="error-message">Discovery service not available</p>
+                    </div>
+                `;
+            }
+        }
+    }
+    
+    /**
+     * Renders a list of discovered items (modules or services) and checks if they exist
+     */
+    async renderDiscoveredItems(container, items, type) {
+        container.innerHTML = '';
+        
+        if (items.length === 0) {
+            container.innerHTML = '<em>None discovered yet</em>';
+            return;
+        }
+        
+        // Sort items alphabetically
+        const sortedItems = [...items].sort();
+        
+        for (const item of sortedItems) {
+            const itemEl = document.createElement('span');
+            itemEl.className = 'item';
+            itemEl.textContent = item;
+            
+            // Check if the item actually exists by trying to fetch its main file
+            try {
+                const path = type === 'modules' 
+                    ? `./modules/${item}/${item}.js` 
+                    : `./services/${item}/${item}.js`;
+                
+                const response = await fetch(path, { method: 'HEAD' });
+                if (response.ok) {
+                    itemEl.classList.add('valid');
+                } else {
+                    itemEl.classList.add('invalid');
+                }
+            } catch (e) {
+                itemEl.classList.add('invalid');
+            }
+            
+            container.appendChild(itemEl);
+        }
     }
     
     onUnmount() {
@@ -56,9 +328,9 @@ export default class SettingsModule {
         // Clean up any event listeners or resources
     }
     
-    showMessage(message) {
+    showMessage(message, type = 'success') {
         const messageEl = document.createElement('div');
-        messageEl.className = 'message success';
+        messageEl.className = `message ${type}`;
         messageEl.textContent = message;
         
         const container = document.querySelector('.settings-module');
