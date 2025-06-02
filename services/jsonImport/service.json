@@ -1,0 +1,77 @@
+{
+  "version": "1.0.0",
+  "description": "Service for importing and validating JSON data using schemas",
+  "dependencies": [],
+  "api": [
+    {
+      "name": "registerSchema",
+      "description": "Register a schema for validating JSON data",
+      "parameters": [
+        {
+          "name": "type",
+          "type": "string",
+          "description": "Schema identifier"
+        },
+        {
+          "name": "schema",
+          "type": "object",
+          "description": "JSON Schema definition"
+        },
+        {
+          "name": "transformer",
+          "type": "function",
+          "description": "Optional transformation function",
+          "optional": true
+        }
+      ],
+      "returns": "Boolean indicating success"
+    },
+    {
+      "name": "importData",
+      "description": "Import and validate JSON data using a registered schema",
+      "parameters": [
+        {
+          "name": "type",
+          "type": "string",
+          "description": "Schema identifier"
+        },
+        {
+          "name": "source",
+          "type": "string|object",
+          "description": "URL or file path to JSON data, or direct JSON object"
+        },
+        {
+          "name": "options",
+          "type": "object",
+          "description": "Import options",
+          "optional": true
+        }
+      ],
+      "returns": "Object containing validation result and data"
+    },
+    {
+      "name": "unregisterSchema",
+      "description": "Unregister a schema",
+      "parameters": [
+        {
+          "name": "type",
+          "type": "string",
+          "description": "Schema identifier"
+        }
+      ]
+    },
+    {
+      "name": "getRegisteredTypes",
+      "description": "Get all registered schema types",
+      "returns": "Array of schema type identifiers"
+    }
+  ],
+  "config": {
+    "ajvOptions": {
+      "allErrors": true,
+      "removeAdditional": "all",
+      "useDefaults": true,
+      "coerceTypes": true
+    }
+  }
+}

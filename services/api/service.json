@@ -1,0 +1,126 @@
+{
+  "version": "1.0.0",
+  "description": "API service for making HTTP requests",
+  "dependencies": [],
+  "api": [
+    {
+      "name": "setBaseUrl",
+      "description": "Sets the base URL for all API requests",
+      "parameters": [
+        {
+          "name": "url",
+          "type": "string",
+          "description": "Base URL for API"
+        }
+      ]
+    },
+    {
+      "name": "setHeader",
+      "description": "Sets a header for all API requests",
+      "parameters": [
+        {
+          "name": "key",
+          "type": "string",
+          "description": "Header key"
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "description": "Header value"
+        }
+      ]
+    },
+    {
+      "name": "get",
+      "description": "Makes a GET request",
+      "parameters": [
+        {
+          "name": "endpoint",
+          "type": "string",
+          "description": "API endpoint"
+        },
+        {
+          "name": "params",
+          "type": "object",
+          "description": "Query parameters",
+          "optional": true
+        },
+        {
+          "name": "options",
+          "type": "object",
+          "description": "Request options",
+          "optional": true
+        }
+      ],
+      "returns": "Response data"
+    },
+    {
+      "name": "post",
+      "description": "Makes a POST request",
+      "parameters": [
+        {
+          "name": "endpoint",
+          "type": "string",
+          "description": "API endpoint"
+        },
+        {
+          "name": "data",
+          "type": "object",
+          "description": "Request body"
+        },
+        {
+          "name": "options",
+          "type": "object",
+          "description": "Request options",
+          "optional": true
+        }
+      ],
+      "returns": "Response data"
+    },
+    {
+      "name": "put",
+      "description": "Makes a PUT request",
+      "parameters": [
+        {
+          "name": "endpoint",
+          "type": "string",
+          "description": "API endpoint"
+        },
+        {
+          "name": "data",
+          "type": "object",
+          "description": "Request body"
+        },
+        {
+          "name": "options",
+          "type": "object",
+          "description": "Request options",
+          "optional": true
+        }
+      ],
+      "returns": "Response data"
+    },
+    {
+      "name": "delete",
+      "description": "Makes a DELETE request",
+      "parameters": [
+        {
+          "name": "endpoint",
+          "type": "string",
+          "description": "API endpoint"
+        },
+        {
+          "name": "options",
+          "type": "object",
+          "description": "Request options",
+          "optional": true
+        }
+      ],
+      "returns": "Response data"
+    }
+  ],
+  "config": {
+    "defaultTimeout": 30000,
+    "baseUrl": ""
+  }
+}

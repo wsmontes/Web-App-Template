@@ -1,0 +1,65 @@
+{
+  "version": "1.0.0",
+  "description": "Storage service for saving and retrieving data from localStorage with memory cache",
+  "dependencies": [],
+  "api": [
+    {
+      "name": "setPrefix",
+      "description": "Sets the prefix used for all localStorage keys",
+      "parameters": [
+        {
+          "name": "prefix",
+          "type": "string",
+          "description": "Prefix to use for localStorage keys"
+        }
+      ]
+    },
+    {
+      "name": "getItem",
+      "description": "Retrieves a value from storage",
+      "parameters": [
+        {
+          "name": "key",
+          "type": "string",
+          "description": "Key to retrieve"
+        }
+      ],
+      "returns": "The stored value or null if not found"
+    },
+    {
+      "name": "setItem",
+      "description": "Stores a value in storage",
+      "parameters": [
+        {
+          "name": "key",
+          "type": "string",
+          "description": "Key to store"
+        },
+        {
+          "name": "value",
+          "type": "any",
+          "description": "Value to store"
+        }
+      ]
+    },
+    {
+      "name": "removeItem",
+      "description": "Removes an item from storage",
+      "parameters": [
+        {
+          "name": "key",
+          "type": "string",
+          "description": "Key to remove"
+        }
+      ]
+    },
+    {
+      "name": "clear",
+      "description": "Clears all items with the current prefix from storage"
+    }
+  ],
+  "config": {
+    "defaultPrefix": "app_",
+    "useMemoryCache": true
+  }
+}

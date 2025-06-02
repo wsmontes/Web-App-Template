@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Responsive Web App</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    <script src="app.js" type="module"></script>
+</head>
+<body>
+    <header class="app-header">
+        <div class="container">
+            <div class="logo">ModernApp</div>
+            <nav class="main-nav" aria-label="Main navigation">
+                <!-- Navigation will be dynamically populated -->
+            </nav>
+            <button class="menu-toggle" aria-label="Toggle menu" aria-expanded="false">
+                <span></span>
+            </button>
+        </div>
+    </header>
+    
+    <main id="app-container">
+        <!-- Modules will be loaded here -->
+        <div class="loader" aria-live="polite">Loading application...</div>
+    </main>
+
+    <footer class="app-footer">
+        <div class="container">
+            <p>&copy; <span id="current-year"></span> ModernApp. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Update the year dynamically
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+    </script>
+</body>
+</html>

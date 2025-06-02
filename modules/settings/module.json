@@ -1,0 +1,13 @@
+{
+  "title": "Settings",
+  "version": "1.0.0",
+  "description": "Application settings module",
+  "navItem": true,
+  "navOrder": 10,
+  "requiredServices": ["theme", "storage"],
+  "routes": [
+    {
+      "path": "/settings"
+    }
+  ]
+}

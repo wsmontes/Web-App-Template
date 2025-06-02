@@ -1,0 +1,41 @@
+{
+  "version": "1.0.0",
+  "description": "Theme management service for switching between light and dark themes",
+  "dependencies": [],
+  "api": [
+    {
+      "name": "getCurrentTheme",
+      "description": "Returns the current active theme ('light' or 'dark')"
+    },
+    {
+      "name": "setTheme",
+      "description": "Sets the active theme",
+      "parameters": [
+        {
+          "name": "theme",
+          "type": "string",
+          "description": "Theme to set ('light' or 'dark')"
+        }
+      ]
+    },
+    {
+      "name": "toggleTheme",
+      "description": "Toggles between light and dark themes",
+      "returns": "The new active theme string"
+    }
+  ],
+  "config": {
+    "defaultTheme": "light",
+    "autoDetect": true,
+    "localStorageKey": "theme"
+  },
+  "events": [
+    {
+      "name": "themeChanged",
+      "description": "Fired when the theme changes",
+      "detail": {
+        "theme": "The new theme name"
+      }
+    }
+  ]
+}
