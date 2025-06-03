@@ -247,7 +247,7 @@ class DiscoveryService {
     async scanForModules() {
         // Start with a more limited set of potential modules to reduce false positives
         const potentialModules = new Set([
-            'home', 'settings', 'about', 'dashboard'
+            'home', 'settings', 'about', 'dashboard', 'tableVisualizer'
         ]);
 
         const discoveredModules = new Set();
@@ -257,7 +257,7 @@ class DiscoveryService {
 
         // Check index.html for hash routes
         try {
-            const indexResponse = await fetch('./index.html');
+            const indexResponse = await fetch('./index.html', { cache: 'no-store' });
             if (indexResponse.ok) {
                 const html = await indexResponse.text();
                 const hashRegex = /href=["']#\/([^\/'"]+)/g;
@@ -282,7 +282,7 @@ class DiscoveryService {
                     const jsResponse = await fetch(`./modules/${moduleName}/${moduleName}.js`, {
                         method: 'HEAD',
                         signal: controller.signal,
-                        cache: 'force-cache'
+                        cache: 'no-store' // Prevent caching to detect new modules
                     });
                     
                     if (jsResponse.ok) {
@@ -290,7 +290,7 @@ class DiscoveryService {
                         const htmlResponse = await fetch(`./modules/${moduleName}/${moduleName}.html`, {
                             method: 'HEAD',
                             signal: controller.signal,
-                            cache: 'force-cache'
+                            cache: 'no-store' // Prevent caching
                         });
                         
                         if (htmlResponse.ok) {
@@ -310,9 +310,8 @@ class DiscoveryService {
 
     async scanForServices() {
         const potentialServices = new Set([
-            'theme', 'storage', 'api', 'jsonImport', 'discovery',
-            'auth', 'user', 'data', 'config', 'logger'
-            // Reduced list to minimize unnecessary requests
+            'theme', 'storage', 'api', 'jsonImport', 'discovery', 
+            'auth', 'user', 'data', 'config', 'logger', 'tableImport'
         ]);
 
         const discoveredServices = new Set();
@@ -322,7 +321,7 @@ class DiscoveryService {
 
         // Check app.js for service imports
         try {
-            const appResponse = await fetch('./app.js');
+            const appResponse = await fetch('./app.js', { cache: 'no-store' });
             if (appResponse.ok) {
                 const appContent = await appResponse.text();
                 const serviceRegex = /(?:\/|["'])services\/([a-zA-Z0-9_-]+)/g;
@@ -338,7 +337,9 @@ class DiscoveryService {
         // Check module files for service imports
         for (const moduleName of this.discoveredModules) {
             try {
-                const moduleResponse = await fetch(`./modules/${moduleName}/${moduleName}.js`);
+                const moduleResponse = await fetch(`./modules/${moduleName}/${moduleName}.js`, {
+                    cache: 'no-store'
+                });
                 if (moduleResponse.ok) {
                     const moduleContent = await moduleResponse.text();
                     const serviceRegex = /(?:\/|["'])services\/([a-zA-Z0-9_-]+)/g;
@@ -357,7 +358,7 @@ class DiscoveryService {
         const servicesToCheck = new Set();
         
         // Include essential ones
-        ['theme', 'storage', 'api', 'jsonImport', 'discovery'].forEach(s => 
+        ['theme', 'storage', 'api', 'jsonImport', 'discovery', 'tableImport'].forEach(s => 
             servicesToCheck.add(s));
         
         // Include ones found in code
@@ -371,15 +372,14 @@ class DiscoveryService {
         const timeoutId = setTimeout(() => controller.abort(), 2000);
         
         try {
-            // Try checking each potential service directly - but only the ones that
-            // we have good reason to think might exist
+            // Try checking each potential service directly
             await Promise.all(Array.from(servicesToCheck).map(async (serviceName) => {
                 try {
                     // Try to fetch the service's main JS file
                     const jsResponse = await fetch(`./services/${serviceName}/${serviceName}.js`, {
                         method: 'HEAD',
                         signal: controller.signal,
-                        cache: 'force-cache'
+                        cache: 'no-store' // Prevent caching to detect new services
                     });
                     if (jsResponse.ok) {
                         discoveredServices.add(serviceName);

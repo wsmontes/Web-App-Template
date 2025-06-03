@@ -1,44 +1,134 @@
 :root {
-    /* Theme colors */
+    /* Theme colors - Enhanced palette */
     --primary-color: #4f46e5;
     --primary-light: #6366f1;
     --primary-dark: #4338ca;
+    --primary-50: #eef2ff;
+    --primary-100: #e0e7ff;
+    --primary-200: #c7d2fe;
+    --primary-300: #a5b4fc;
+    --primary-400: #818cf8;
+    --primary-500: #6366f1;
+    --primary-600: #4f46e5;
+    --primary-700: #4338ca;
+    --primary-800: #3730a3;
+    --primary-900: #312e81;
+    
+    /* Secondary colors */
     --secondary-color: #14b8a6;
+    --secondary-light: #2dd4bf;
+    --secondary-dark: #0d9488;
+    
+    /* Accent colors */
     --accent-color: #f59e0b;
+    --accent-light: #fbbf24;
+    --accent-dark: #d97706;
+    
+    /* Success, error, warning, info colors */
+    --success-color: #10b981;
+    --error-color: #ef4444;
+    --warning-color: #f59e0b;
+    --info-color: #3b82f6;
     
     /* Light theme (default) */
     --bg-color: #f9fafb;
     --card-bg: #ffffff;
+    --card-bg-hover: #f3f4f6;
     --text-color: #1f2937;
+    --text-color-light: #6b7280;
+    --text-color-lighter: #9ca3af;
     --secondary-text: #4b5563;
     --border-color: #e5e7eb;
     --secondary-bg: #f3f4f6;
+    --input-bg: #ffffff;
+    --input-border: #d1d5db;
+    --hover-color: #f3f4f6;
     
-    /* Shadow */
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    /* Shadow - Enhanced for depth */
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+    --shadow-outline: 0 0 0 3px rgba(99, 102, 241, 0.3);
     
-    /* Spacing */
-    --space-xs: 0.5rem;
-    --space-sm: 1rem;
-    --space-md: 1.5rem;
-    --space-lg: 2rem;
-    --space-xl: 3rem;
+    /* Spacing system */
+    --space-xs: 0.5rem;   /* 8px */
+    --space-sm: 1rem;     /* 16px */
+    --space-md: 1.5rem;   /* 24px */
+    --space-lg: 2rem;     /* 32px */
+    --space-xl: 3rem;     /* 48px */
+    --space-2xl: 4rem;    /* 64px */
+    --space-3xl: 6rem;    /* 96px */
     
     /* Border Radius */
-    --radius-sm: 0.25rem;
-    --radius-md: 0.5rem;
-    --radius-lg: 1rem;
+    --radius-xs: 0.125rem;  /* 2px */
+    --radius-sm: 0.25rem;   /* 4px */
+    --radius-md: 0.5rem;    /* 8px */
+    --radius-lg: 1rem;      /* 16px */
+    --radius-xl: 1.5rem;    /* 24px */
     --radius-full: 9999px;
+    
+    /* Typography */
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+    
+    /* Z-index layers */
+    --z-hidden: -1;
+    --z-base: 0;
+    --z-raised: 10;
+    --z-dropdown: 20;
+    --z-sticky: 30;
+    --z-fixed: 40;
+    --z-modal: 50;
+    --z-popover: 60;
+    --z-toast: 70;
+    --z-tooltip: 80;
+    
+    /* Transitions & Animations */
+    --transition-fast: 150ms;
+    --transition-normal: 250ms;
+    --transition-slow: 350ms;
+    --transition-bounce: cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    --transition-ease: cubic-bezier(0.65, 0, 0.35, 1);
+    --transition-ease-in-out: cubic-bezier(0.42, 0, 0.58, 1);
+    
+    /* Layout */
+    --container-padding: 1.5rem;
+    --header-height: 70px;
+    --max-content-width: 1200px;
+    
+    /* Screen breakpoints */
+    --breakpoint-sm: 640px;
+    --breakpoint-md: 768px;
+    --breakpoint-lg: 1024px;
+    --breakpoint-xl: 1280px;
 }
 
 /* Dark theme */
 body[data-theme="dark"] {
-    --bg-color: #111827;
-    --card-bg: #1f2937;
-    --text-color: #f9fafb;
-    --secondary-text: #d1d5db;
-    --border-color: #374151;
-    --secondary-bg: #1f2937;
+    --bg-color: #0f172a;
+    --card-bg: #1e293b;
+    --card-bg-hover: #334155;
+    --text-color: #f1f5f9;
+    --text-color-light: #cbd5e1;
+    --text-color-lighter: #94a3b8;
+    --secondary-text: #cbd5e1;
+    --border-color: #334155;
+    --secondary-bg: #1e293b;
+    --input-bg: #1e293b;
+    --input-border: #475569;
+    --hover-color: #334155;
+    
+    /* Shadows for dark mode */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.36);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.36);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.25);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.24);
+    --shadow-outline: 0 0 0 3px rgba(99, 102, 241, 0.4);
 }

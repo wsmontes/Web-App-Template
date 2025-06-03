@@ -2,10 +2,22 @@ export class ModuleLoader {
     constructor() {
         this.modules = {};
         this.moduleConfigs = {};
+        this.discoveryService = null;
     }
     
     async loadModules() {
         try {
+            // Get discovery service if available
+            if (window.serviceRegistry && window.serviceRegistry.discovery) {
+                this.discoveryService = window.serviceRegistry.discovery.instance;
+                
+                // Run a quick discovery scan to find any new modules
+                if (this.discoveryService && typeof this.discoveryService.discoverNewModules === 'function') {
+                    console.log('Running module discovery scan to find new modules...');
+                    await this.discoveryService.discoverNewModules();
+                }
+            }
+            
             // Discover module configs first
             this.moduleConfigs = await this.discoverModuleConfigs();
             
@@ -52,9 +64,9 @@ export class ModuleLoader {
                         this.modules[moduleName] = moduleInstance;
                         console.log(`Module '${moduleName}' loaded successfully`);
                         
-                        // If our discovery service is available, register this module
-                        if (window.serviceRegistry && window.serviceRegistry.discovery) {
-                            window.serviceRegistry.discovery.instance.addDiscoveredModule(moduleName);
+                        // Register with discovery service
+                        if (this.discoveryService && typeof this.discoveryService.addDiscoveredModule === 'function') {
+                            this.discoveryService.addDiscoveredModule(moduleName);
                         }
                     }
                 } catch (moduleError) {
@@ -83,7 +95,9 @@ export class ModuleLoader {
             for (const moduleName of moduleNames) {
                 try {
                     // Try to load the module.json file
-                    const configResponse = await fetch(`./modules/${moduleName}/module.json`);
+                    const configResponse = await fetch(`./modules/${moduleName}/module.json`, {
+                        cache: 'no-store' // Prevent caching to ensure we get the latest version
+                    });
                     
                     if (configResponse.ok) {
                         const config = await configResponse.json();
@@ -96,11 +110,13 @@ export class ModuleLoader {
                         // Check if the module files exist to create a default config
                         try {
                             const jsExists = await fetch(`./modules/${moduleName}/${moduleName}.js`, {
-                                method: 'HEAD'
+                                method: 'HEAD',
+                                cache: 'no-store'
                             });
                             
                             const htmlExists = await fetch(`./modules/${moduleName}/${moduleName}.html`, {
-                                method: 'HEAD'
+                                method: 'HEAD',
+                                cache: 'no-store'
                             });
                             
                             if (jsExists.ok && htmlExists.ok) {

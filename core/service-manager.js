@@ -35,6 +35,12 @@ export async function initializeServices() {
                         console.log(`Initializing service: ${serviceName}`);
                         await service.init(serviceConfig.config || {});
                     }
+                    
+                    // Register with discovery service if available and this isn't the discovery service itself
+                    if (serviceName !== 'discovery' && services.discovery && 
+                        typeof services.discovery.addDiscoveredService === 'function') {
+                        services.discovery.addDiscoveredService(serviceName);
+                    }
                 }
             } catch (err) {
                 console.warn(`Failed to load service '${serviceName}':`, err);
@@ -43,6 +49,12 @@ export async function initializeServices() {
         
         // Make the registry available on window for inter-service communication
         window.serviceRegistry = serviceRegistry;
+        
+        // Run a quick discovery scan to find any new services
+        if (services.discovery && typeof services.discovery.discoverNewServices === 'function') {
+            console.log('Running service discovery scan to find new services...');
+            await services.discovery.discoverNewServices();
+        }
         
         return services;
     } catch (error) {

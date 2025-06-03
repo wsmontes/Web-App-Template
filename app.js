@@ -24,6 +24,20 @@ class App {
             const services = await initializeServices();
             console.log('Services initialized:', Object.keys(services));
             
+            // If we have a discovery service, run a refresh to catch any new modules/services
+            if (services.discovery) {
+                console.log('Refreshing module and service discovery...');
+                
+                // Run discovery scan to ensure we find any newly added modules and services
+                if (typeof services.discovery.discoverNewServices === 'function') {
+                    await services.discovery.discoverNewServices();
+                }
+                
+                if (typeof services.discovery.discoverNewModules === 'function') {
+                    await services.discovery.discoverNewModules();
+                }
+            }
+            
             // Load all modules
             const modules = await this.moduleLoader.loadModules();
             console.log('Modules loaded:', Object.keys(modules));

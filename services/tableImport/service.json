@@ -1,0 +1,28 @@
+{
+  "name": "tableImport",
+  "version": "1.0.0",
+  "description": "Import and manage tabular data from CSV and Excel files",
+  "dependencies": ["storage"],
+  "api": [
+    {
+      "name": "importTable",
+      "description": "Import tabular data from file or text"
+    },
+    {
+      "name": "getAllTables",
+      "description": "Get all imported tables"
+    },
+    {
+      "name": "getTable",
+      "description": "Get a specific table by ID"
+    },
+    {
+      "name": "deleteTable",
+      "description": "Delete a table"
+    },
+    {
+      "name": "exportTableToCSV",
+      "description": "Export table to CSV format"
+    }
+  ]
+}

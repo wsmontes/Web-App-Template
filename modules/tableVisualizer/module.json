@@ -1,0 +1,9 @@
+{
+  "name": "tableVisualizer",
+  "title": "Table Visualizer",
+  "version": "1.0.0",
+  "description": "Import, view, and analyze tabular data from CSV and Excel files",
+  "navItem": true,
+  "navOrder": 20,
+  "requiredServices": ["storage", "tableImport"]
+}

@@ -1,0 +1,569 @@
+<div class="table-visualizer-module">
+    <div class="module-header">
+        <h1>Table Visualizer</h1>
+        <p class="module-description">Import and visualize tabular data from CSV and Excel files</p>
+    </div>
+    
+    <div class="dashboard-grid">
+        <section class="import-section card">
+            <div class="card-header">
+                <h2>Import Table</h2>
+            </div>
+            <div class="card-body">
+                <div class="import-controls">
+                    <input type="file" id="table-file-input" accept=".csv,.xls,.xlsx" style="display: none;">
+                    <div class="button-group">
+                        <button id="import-table-btn" class="btn btn-primary">
+                            <span class="btn-icon">📄</span>
+                            Select File
+                        </button>
+                        <div class="checkbox-wrapper">
+                            <input type="checkbox" id="has-headers" checked class="custom-checkbox">
+                            <label for="has-headers">First row contains headers</label>
+                        </div>
+                    </div>
+                    <div class="help-text">
+                        <span class="format-badge">CSV</span>
+                        <span class="format-badge">XLSX</span>
+                        <span class="format-badge">XLS</span>
+                        <small>Supported formats</small>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section class="tables-section card">
+            <div class="card-header">
+                <h2>Manage Tables</h2>
+            </div>
+            <div class="card-body">
+                <div class="table-selector">
+                    <div class="select-wrapper">
+                        <select id="table-select" class="form-control">
+                            <option value="">-- Select a table --</option>
+                        </select>
+                    </div>
+                    <div class="table-actions">
+                        <button id="delete-table-btn" class="btn btn-danger btn-sm" disabled>
+                            <span class="btn-icon">🗑️</span>
+                            Delete
+                        </button>
+                        <button id="export-table-btn" class="btn btn-secondary btn-sm" disabled>
+                            <span class="btn-icon">📥</span>
+                            Export CSV
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+    
+    <section class="table-view-section card">
+        <div class="card-header table-toolbar">
+            <div class="search-container">
+                <div class="search-wrapper">
+                    <input type="text" id="table-search" class="form-control" placeholder="Search table..." disabled>
+                    <span class="search-icon">🔍</span>
+                </div>
+            </div>
+            <div class="page-size-container">
+                <label for="rows-per-page">Show rows:</label>
+                <select id="rows-per-page" class="form-control" disabled>
+                    <option value="10">10</option>
+                    <option value="25" selected>25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                    <option value="500">500</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="card-body table-container-wrapper">
+            <div id="table-container" class="table-container">
+                <div class="empty-state">
+                    <div class="empty-icon">📊</div>
+                    <p>No table selected</p>
+                    <small>Import a table or select one from the dropdown above</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card-footer">
+            <div id="table-info" class="table-info"></div>
+            <div id="pagination" class="pagination"></div>
+        </div>
+    </section>
+</div>
+
+<style>
+.table-visualizer-module {
+    padding: var(--space-md);
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.module-header {
+    margin-bottom: var(--space-md);
+}
+
+.module-header h1 {
+    margin-bottom: var(--space-xs);
+    color: var(--primary-color);
+    background: linear-gradient(90deg, var(--primary-color), var(--primary-dark));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.module-description {
+    color: var(--text-color-light);
+    margin-bottom: 0;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--space-md);
+    margin-bottom: var(--space-md);
+}
+
+.card {
+    background-color: var(--card-bg);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow var(--transition-normal) var(--transition-ease),
+                transform var(--transition-normal) var(--transition-ease);
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+    height: 100%;
+}
+
+.card:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.card-header {
+    padding: var(--space-md);
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--card-bg-hover);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: var(--primary-color);
+}
+
+.card-body {
+    padding: var(--space-md);
+}
+
+.card-footer {
+    padding: var(--space-md);
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+}
+
+/* Import section styles */
+.import-controls {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.button-group {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-md);
+}
+
+.checkbox-wrapper {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+}
+
+.custom-checkbox {
+    appearance: none;
+    -webkit-appearance: none;
+    height: 18px;
+    width: 18px;
+    background-color: var(--input-bg);
+    border: 1px solid var(--input-border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.custom-checkbox:checked::after {
+    content: "✓";
+    color: white;
+    position: absolute;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.custom-checkbox:checked {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.format-badge {
+    display: inline-block;
+    background-color: var(--primary-100);
+    color: var(--primary-800);
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    font-weight: var(--font-weight-medium);
+    margin-right: 5px;
+}
+
+.help-text {
+    font-size: 0.85rem;
+    color: var(--text-color-light);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-xs);
+}
+
+.help-text small {
+    color: var(--text-color-lighter);
+}
+
+/* Table selector styles */
+.table-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-md);
+    align-items: center;
+}
+
+.select-wrapper {
+    flex: 1;
+    min-width: 200px;
+}
+
+.table-actions {
+    display: flex;
+    gap: var(--space-sm);
+}
+
+.btn-icon {
+    display: inline-block;
+    margin-right: 5px;
+    font-size: 1.1em;
+}
+
+/* Table view section styles */
+.table-toolbar {
+    flex-wrap: wrap;
+    gap: var(--space-md);
+}
+
+.search-container {
+    flex: 1;
+    min-width: 200px;
+}
+
+.search-wrapper {
+    position: relative;
+}
+
+.search-wrapper input {
+    padding-right: 35px;
+    width: 100%;
+}
+
+.search-icon {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-color-lighter);
+    pointer-events: none;
+}
+
+.page-size-container {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.page-size-container label {
+    white-space: nowrap;
+    font-size: 0.9rem;
+    color: var(--text-color-light);
+}
+
+.table-container-wrapper {
+    overflow: hidden;
+    max-height: 600px;
+}
+
+.table-container {
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: 100%;
+}
+
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-xl);
+    color: var(--text-color-lighter);
+    text-align: center;
+}
+
+.empty-icon {
+    font-size: 3rem;
+    margin-bottom: var(--space-sm);
+    opacity: 0.6;
+}
+
+.table-info {
+    font-size: 0.9rem;
+    color: var(--text-color-light);
+}
+
+.pagination {
+    display: flex;
+    gap: var(--space-xs);
+}
+
+.pagination button {
+    padding: 5px 10px;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-color);
+    cursor: pointer;
+    transition: all var(--transition-fast) var(--transition-ease);
+}
+
+.pagination button:hover {
+    background-color: var(--hover-color);
+}
+
+.pagination button.active {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.pagination button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Table data styles */
+.table-data {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table-data th, 
+.table-data td {
+    padding: 10px 15px;
+    border: 1px solid var(--border-color);
+    text-align: left;
+}
+
+.table-data th {
+    background-color: var(--card-bg-hover);
+    font-weight: var(--font-weight-semibold);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+    transition: background-color var(--transition-fast) ease;
+}
+
+.table-data th:hover {
+    background-color: var(--hover-color);
+}
+
+.table-data th.sorted::after {
+    content: " ▲";
+    font-size: 0.8em;
+    opacity: 0.7;
+    margin-left: 5px;
+}
+
+.table-data th.sorted.desc::after {
+    content: " ▼";
+}
+
+.table-data tbody tr:nth-child(even) {
+    background-color: var(--card-bg-hover);
+}
+
+.table-data tbody tr:hover {
+    background-color: var(--hover-color);
+}
+
+/* Loading overlay */
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.8);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    backdrop-filter: blur(2px);
+}
+
+body[data-theme="dark"] .loading-overlay {
+    background-color: rgba(0, 0, 0, 0.6);
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--primary-200);
+    border-radius: 50%;
+    border-top-color: var(--primary-color);
+    animation: spin 1s linear infinite;
+}
+
+.loading-message {
+    margin-top: var(--space-md);
+    font-weight: var(--font-weight-medium);
+    color: var(--primary-color);
+}
+
+/* Notification styles */
+.notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: var(--space-md);
+    border-radius: var(--radius-md);
+    color: white;
+    box-shadow: var(--shadow-lg);
+    animation: slide-in 0.3s var(--transition-ease);
+    max-width: 350px;
+    z-index: 1000;
+}
+
+.notification.info {
+    background-color: var(--info-color);
+}
+
+.notification.success {
+    background-color: var(--success-color);
+}
+
+.notification.warning {
+    background-color: var(--warning-color);
+}
+
+.notification.error {
+    background-color: var(--error-color);
+}
+
+.notification.fade-out {
+    animation: fade-out 0.5s var(--transition-ease) forwards;
+}
+
+@keyframes slide-in {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fade-out {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(10px); }
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Responsive styles */
+@media (max-width: 1024px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .table-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .table-actions {
+        margin-top: var(--space-sm);
+        justify-content: flex-end;
+    }
+    
+    .card-footer {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .pagination {
+        align-self: flex-end;
+    }
+}
+
+@media (max-width: 480px) {
+    .table-visualizer-module {
+        padding: var(--space-sm);
+    }
+    
+    .button-group {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .table-selector {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .table-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    .pagination button {
+        padding: 4px 8px;
+        font-size: 0.9rem;
+    }
+}
+
+/* Animations */
+.card {
+    animation: fade-in 0.5s var(--transition-ease);
+}
+
+@keyframes fade-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>

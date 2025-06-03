@@ -50,52 +50,6 @@ export default class SettingsModule {
             });
         }
         
-        // Add debugging functionality
-        const debugModulePathsBtn = container.querySelector('#debug-module-paths');
-        const debugOutput = container.querySelector('#debug-output');
-        
-        if (debugModulePathsBtn && debugOutput) {
-            debugModulePathsBtn.addEventListener('click', async () => {
-                debugOutput.innerHTML = 'Checking module paths...\n';
-                const modules = ['home', 'settings', 'chatbot'];
-                
-                for (const module of modules) {
-                    const jsPath = `./modules/${module}/${module}.js`;
-                    const htmlPath = `./modules/${module}/${module}.html`;
-                    const configPath = `./modules/${module}/module.json`;
-                    
-                    debugOutput.innerHTML += `\nChecking ${module} module:\n`;
-                    
-                    try {
-                        const jsResponse = await fetch(jsPath, { method: 'HEAD' });
-                        const status = jsResponse.ok ? 'OK' : 'NOT FOUND';
-                        const className = jsResponse.ok ? 'path-ok' : 'path-error';
-                        debugOutput.innerHTML += `<span class="${className}">JS file: ${status} (${jsPath})</span>\n`;
-                    } catch (e) {
-                        debugOutput.innerHTML += `<span class="path-error">JS file: ERROR (${jsPath})</span>\n`;
-                    }
-                    
-                    try {
-                        const htmlResponse = await fetch(htmlPath, { method: 'HEAD' });
-                        const status = htmlResponse.ok ? 'OK' : 'NOT FOUND';
-                        const className = htmlResponse.ok ? 'path-ok' : 'path-error';
-                        debugOutput.innerHTML += `<span class="${className}">HTML file: ${status} (${htmlPath})</span>\n`;
-                    } catch (e) {
-                        debugOutput.innerHTML += `<span class="path-error">HTML file: ERROR (${htmlPath})</span>\n`;
-                    }
-                    
-                    try {
-                        const configResponse = await fetch(configPath, { method: 'HEAD' });
-                        const status = configResponse.ok ? 'OK' : 'NOT FOUND';
-                        const className = configResponse.ok ? 'path-ok' : 'path-error';
-                        debugOutput.innerHTML += `<span class="${className}">Config file: ${status} (${configPath})</span>\n`;
-                    } catch (e) {
-                        debugOutput.innerHTML += `<span class="path-error">Config file: ERROR (${configPath})</span>\n`;
-                    }
-                }
-            });
-        }
-        
         // Set up module and service discovery UI
         this.setupDiscoveryUI(container);
     }
